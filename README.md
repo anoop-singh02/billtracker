@@ -113,8 +113,7 @@ Released under the MIT License – see `LICENSE` for details.
 
 ## 🙋‍♂️ Author
 
-| ![avatar](https://avatars.githubusercontent.com/anoopsingh)                                           |
-| ----------------------------------------------------------------------------------------------------- |
-| **Anoop Singh Panesar**<br>AWS Certified                                                              |
+
+| **Anoop Singh Panesar**                                                   |
 
 Feel free to reach out with questions about the project!
