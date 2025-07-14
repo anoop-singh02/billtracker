@@ -1,0 +1,171 @@
+
+/*--------------------------------------------------
+  CSS Custom Properties (Theme Colors)
+--------------------------------------------------*/
+:root {
+  --primary: #2c3e50;       /* Dark blue base */
+  --secondary: #34495e;     /* Slightly lighter blue */
+  --accent: #e74c3c;        /* Red accent */
+  --success: #27ae60;       /* Green for success states */
+  --warning: #f39c12;       /* Orange for warnings */
+  --danger: #c0392b;        /* Red for errors/overdue */
+  --light: #ecf0f1;         /* Light grey backgrounds */
+  --dark: #2c3e50;          /* Dark background color */
+}
+
+/*--------------------------------------------------
+  Base Styles
+--------------------------------------------------*/
+body {
+  background-color: #f8f9fa; /* Light off-white page background */
+}
+
+/*--------------------------------------------------
+  Navigation Bar Styles
+--------------------------------------------------*/
+.navbar {
+  background: #1a237e !important;              /* Deep indigo background */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);         /* Subtle shadow */
+}
+.navbar-brand {
+  color: white !important;                      /* Brand text color */
+  font-weight: 600;                             /* Semi-bold */
+}
+.nav-link {
+  color: rgba(255,255,255,0.9) !important;      /* Link color */
+}
+.nav-link:hover {
+  color: white !important;                      /* Hover state */
+}
+
+/*--------------------------------------------------
+  Button Overrides
+--------------------------------------------------*/
+.btn-primary {
+  background-color: #1a237e;                    /* Match navbar color */
+  border-color: #1a237e;
+}
+.btn-primary:hover {
+  background-color: #283593;                    /* Slightly lighter on hover */
+  border-color: #283593;
+}
+
+/*--------------------------------------------------
+  Card Components
+--------------------------------------------------*/
+.card {
+  border: none;                                  /* Remove default border */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);         /* Soft shadow */
+  transition: transform 0.2s;                    /* Hover lift transition */
+}
+.card:hover {
+  transform: translateY(-2px);                  /* Lift on hover */
+}
+
+/*--------------------------------------------------
+  Status Badge Styles
+--------------------------------------------------*/
+.status-badge {
+  padding: 0.25rem 0.5rem;                      /* Badge padding */
+  border-radius: 9999px;                        /* Fully rounded */
+  font-size: 0.875rem;                          /* Slightly smaller text */
+  font-weight: 500;                             /* Medium weight */
+}
+.status-badge.paid {
+  background-color: var(--success);             /* Green */
+  color: white;
+}
+.status-badge.unpaid {
+  background-color: var(--warning);             /* Orange */
+  color: white;
+}
+.status-badge.overdue {
+  background-color: var(--danger);              /* Red */
+  color: white;
+}
+
+/*--------------------------------------------------
+  Dashboard Card Styles
+--------------------------------------------------*/
+.dashboard-card {
+  background: white;                             /* White card background */
+  border-radius: 8px;                            /* Rounded corners */
+  padding: 1.5rem;                               /* Spacing inside */
+  margin-bottom: 1rem;                           /* Space below */
+}
+.dashboard-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;                            /* Circular icon background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+/*--------------------------------------------------
+  Form and Table Styles
+--------------------------------------------------*/
+.form-control:focus {
+  border-color: #1a237e;                         /* Focus border color */
+  box-shadow: 0 0 0 0.2rem rgba(26,35,126,0.25); /* Focus glow */
+}
+.table thead th {
+  background-color: var(--light);                /* Light header background */
+  border-bottom: 2px solid #1a237e;              /* Header bottom border */
+}
+
+/*--------------------------------------------------
+  Animations and Effects
+--------------------------------------------------*/
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+/*--------------------------------------------------
+  Hero and Features Sections
+--------------------------------------------------*/
+.hero-section {
+  background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+  color: white;
+  padding: 4rem 0;
+}
+.hero-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.features-section {
+  padding: 4rem 0;
+  background: white;
+}
+.feature-card {
+  text-align: center;
+  padding: 2rem;
+}
+.feature-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  color: #1a237e;
+}
+
+/*--------------------------------------------------
+  Responsive Adjustments
+--------------------------------------------------*/
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;                               /* Reduce container padding */
+  }
+  .dashboard-card {
+    margin-bottom: 1rem;
+  }
+  .hero-section {
+    padding: 2rem 0;                            /* Smaller hero padding */
+  }
+}
