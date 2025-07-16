@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+  }
+
+  input, textarea, select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+@layer components {
+  .ios-card {
+    @apply bg-white rounded-xl shadow-sm border border-ios-gray-200;
+  }
+  
+  .ios-button {
+    @apply px-6 py-3 rounded-xl font-medium transition-all duration-200 active:scale-95;
+  }
+  
+  .ios-button-primary {
+    @apply ios-button bg-ios-blue text-white shadow-lg shadow-ios-blue/25;
+  }
+  
+  .ios-button-secondary {
+    @apply ios-button bg-ios-gray-100 text-ios-gray-700;
+  }
+  
+  .ios-input {
+    @apply w-full px-4 py-3 rounded-xl border border-ios-gray-200 bg-white text-ios-gray-900 placeholder-ios-gray-400 focus:outline-none focus:ring-2 focus:ring-ios-blue focus:border-transparent transition-all duration-200;
+  }
+  
+  .tab-bar {
+    @apply fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-ios-gray-200 px-4 py-2 safe-area-pb;
+  }
+  
+  .tab-item {
+    @apply flex-1 flex flex-col items-center justify-center py-2 px-1 transition-all duration-200;
+  }
+  
+  .tab-item.active {
+    @apply text-ios-blue;
+  }
+  
+  .tab-item:not(.active) {
+    @apply text-ios-gray-500;
+  }
+}
+
+@layer utilities {
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top);
+  }
+}
