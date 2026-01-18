@@ -1,0 +1,19 @@
+{
+  "name": "PHP & SQLite",
+  "image": "mcr.microsoft.com/devcontainers/php:8.2",
+  "features": {
+    "ghcr.io/devcontainers/features/sqlite:1": {}
+  },
+  "forwardPorts": [
+    8001
+  ],
+  "postCreateCommand": "php -S 0.0.0.0:8001",
+  "customizations": {
+    "vscode": {
+      "settings": {},
+      "extensions": [
+        "bmewburn.vscode-intelephense-client"
+      ]
+    }
+  }
+}
