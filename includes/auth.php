@@ -26,7 +26,8 @@ require_once __DIR__ . '/db.php';
  *
  * @return bool True if user_id exists in session, false otherwise.
  */
-function isLoggedIn(): bool {
+function isLoggedIn(): bool
+{
     return isset($_SESSION['user_id']);
 }
 
@@ -38,7 +39,8 @@ function isLoggedIn(): bool {
  *
  * @return bool True if user role is 'admin', false otherwise.
  */
-function isAdmin(): bool {
+function isAdmin(): bool
+{
     return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 }
 
@@ -53,18 +55,17 @@ function isAdmin(): bool {
  * @param string $password The plaintext password to verify.
  * @return bool True on successful login, false on failure.
  */
-function login(string $username, string $password): bool {
+function login(string $username, string $password): bool
+{
     global $conn;
-    
+
     // Prepare and execute query to fetch user record
     $stmt = $conn->prepare("SELECT id, password_hash, role FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
+    $stmt->execute([$username]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
     // Verify exactly one matching user
-    if ($result->num_rows === 1) {
-        $user = $result->fetch_assoc();
+    if ($user) {
         // Verify password hash
         if (password_verify($password, $user['password_hash'])) {
             // Store user info in session for later checks
@@ -88,24 +89,24 @@ function login(string $username, string $password): bool {
  * @param string $password Plaintext password to hash.
  * @return bool True on successful registration, false if username exists or error.
  */
-function register(string $username, string $password): bool {
+function register(string $username, string $password): bool
+{
     global $conn;
-    
+
     // Check if the username already exists
     $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    if ($stmt->get_result()->num_rows > 0) {
+    $stmt->execute([$username]);
+
+    if ($stmt->fetch()) {
         return false;
     }
-    
+
     // Hash the password for secure storage
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
     // Insert new user record
     $stmt = $conn->prepare("INSERT INTO users (username, password_hash) VALUES (?, ?)");
-    $stmt->bind_param("ss", $username, $password_hash);
-    
-    return $stmt->execute();
+
+    return $stmt->execute([$username, $password_hash]);
 }
 
 // ---------------------------------------------------------------------
@@ -114,7 +115,8 @@ function register(string $username, string $password): bool {
 /**
  * Logs the user out by clearing session data and redirecting to login page.
  */
-function logout(): void {
+function logout(): void
+{
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }

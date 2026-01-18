@@ -5,8 +5,8 @@ declare(strict_types=1);
 ini_set('display_errors', '1');
 error_reporting(E_ALL);
 
-// Configure MySQLi to report errors and throw exceptions for easier debugging
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+// Configure MySQLi error reporting (Removed for SQLite/PDO migration)
+// mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 // ---------------------------------------------------------------------
 // Session Initialization

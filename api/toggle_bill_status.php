@@ -31,13 +31,14 @@ if (!$billId) {
 // ---------------------------------------------------------------------
 // Fetch current bill status and ownership
 // ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// Fetch current bill status and ownership
+// ---------------------------------------------------------------------
 $stmt = $conn->prepare(
     "SELECT status, user_id FROM bills WHERE id = ?"
 );
-$stmt->bind_param("i", $billId);
-$stmt->execute();
-$result = $stmt->get_result();
-$bill = $result->fetch_assoc();
+$stmt->execute([$billId]);
+$bill = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // Check if bill exists and user is allowed to modify it
 if (!$bill || (!isAdmin() && $bill['user_id'] !== $_SESSION['user_id'])) {
@@ -52,9 +53,8 @@ $newStatus = $bill['status'] === 'paid' ? 'unpaid' : 'paid';
 $stmt = $conn->prepare(
     "UPDATE bills SET status = ? WHERE id = ?"
 );
-$stmt->bind_param("si", $newStatus, $billId);
 
-if ($stmt->execute()) {
+if ($stmt->execute([$newStatus, $billId])) {
     // Return updated status on success
     echo json_encode(['success' => true, 'status' => $newStatus]);
 } else {

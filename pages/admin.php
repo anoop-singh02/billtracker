@@ -13,34 +13,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $role = $_POST['role'];
                 if ($userId != $_SESSION['user_id']) { // Prevent changing own role
                     $stmt = $conn->prepare("UPDATE users SET role = ? WHERE id = ?");
-                    $stmt->bind_param("si", $role, $userId);
-                    $stmt->execute();
+                    $stmt->execute([$role, $userId]);
                 }
                 break;
-                
+
             case 'delete_user':
                 $userId = $_POST['user_id'];
                 if ($userId != $_SESSION['user_id']) { // Prevent deleting own account
                     $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
-                    $stmt->bind_param("i", $userId);
-                    $stmt->execute();
+                    $stmt->execute([$userId]);
                 }
                 break;
-                
+
             case 'add_user':
                 $username = $_POST['username'];
                 $password = $_POST['password'];
                 $role = $_POST['role'];
-                
+
                 // Check if username exists
                 $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
-                $stmt->bind_param("s", $username);
-                $stmt->execute();
-                if ($stmt->get_result()->num_rows === 0) {
+                $stmt->execute([$username]);
+
+                if (!$stmt->fetch()) {
                     $password_hash = password_hash($password, PASSWORD_DEFAULT);
                     $stmt = $conn->prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)");
-                    $stmt->bind_param("sss", $username, $password_hash, $role);
-                    $stmt->execute();
+                    $stmt->execute([$username, $password_hash, $role]);
                 }
                 break;
         }
@@ -50,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Get all users
 $stmt = $conn->prepare("SELECT id, username, role FROM users ORDER BY username");
 $stmt->execute();
-$users = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get user statistics
 $stmt = $conn->prepare("
@@ -64,7 +61,7 @@ $stmt = $conn->prepare("
     GROUP BY u.id
 ");
 $stmt->execute();
-$userStats = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$userStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $userStats = array_column($userStats, null, 'id');
 ?>
 
@@ -118,10 +115,12 @@ $userStats = array_column($userStats, null, 'id');
                                     </td>
                                     <td>
                                         <?php if ($user['id'] != $_SESSION['user_id']): ?>
-                                            <select class="form-select form-select-sm w-auto" 
-                                                    onchange="updateUserRole(<?php echo $user['id']; ?>, this.value)">
-                                                <option value="user" <?php echo $user['role'] === 'user' ? 'selected' : ''; ?>>User</option>
-                                                <option value="admin" <?php echo $user['role'] === 'admin' ? 'selected' : ''; ?>>Admin</option>
+                                            <select class="form-select form-select-sm w-auto"
+                                                onchange="updateUserRole(<?php echo $user['id']; ?>, this.value)">
+                                                <option value="user" <?php echo $user['role'] === 'user' ? 'selected' : ''; ?>>User
+                                                </option>
+                                                <option value="admin" <?php echo $user['role'] === 'admin' ? 'selected' : ''; ?>>Admin
+                                                </option>
                                             </select>
                                         <?php else: ?>
                                             <span class="badge bg-secondary"><?php echo ucfirst($user['role']); ?></span>
@@ -132,8 +131,8 @@ $userStats = array_column($userStats, null, 'id');
                                     <td><?php echo $userStats[$user['id']]['unpaid_bills'] ?? 0; ?></td>
                                     <td>
                                         <?php if ($user['id'] != $_SESSION['user_id']): ?>
-                                            <button type="button" class="btn btn-sm btn-danger" 
-                                                    onclick="deleteUser(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['username']); ?>')">
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                onclick="deleteUser(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['username']); ?>')">
                                                 <i data-lucide="trash-2"></i>
                                             </button>
                                         <?php endif; ?>
@@ -154,12 +153,12 @@ $userStats = array_column($userStats, null, 'id');
         <div class="modal-content">
             <form method="POST" action="">
                 <input type="hidden" name="action" value="add_user">
-                
+
                 <div class="modal-header">
                     <h5 class="modal-title">Add New User</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                
+
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Username</label>
@@ -177,7 +176,7 @@ $userStats = array_column($userStats, null, 'id');
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Add User</button>
@@ -212,23 +211,23 @@ $userStats = array_column($userStats, null, 'id');
 </div>
 
 <script>
-function updateUserRole(userId, role) {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.innerHTML = `
+    function updateUserRole(userId, role) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.innerHTML = `
         <input type="hidden" name="action" value="update_role">
         <input type="hidden" name="user_id" value="${userId}">
         <input type="hidden" name="role" value="${role}">
     `;
-    document.body.appendChild(form);
-    form.submit();
-}
+        document.body.appendChild(form);
+        form.submit();
+    }
 
-function deleteUser(userId, username) {
-    document.querySelector('#deleteUserModal [name="user_id"]').value = userId;
-    document.getElementById('deleteUserName').textContent = username;
-    new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
-}
+    function deleteUser(userId, username) {
+        document.querySelector('#deleteUserModal [name="user_id"]').value = userId;
+        document.getElementById('deleteUserName').textContent = username;
+        new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
+    }
 </script>
 
 <?php include 'includes/footer.php'; ?>

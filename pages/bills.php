@@ -16,11 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $dueDate = $_POST['due_date'];
             $category = $_POST['category'];
             $status = $_POST['status'];
-            
+
             $stmt = $conn->prepare("INSERT INTO bills (title, amount, due_date, category, status, user_id) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("sdsssi", $title, $amount, $dueDate, $category, $status, $userId);
-            
-            if ($stmt->execute()) {
+
+            if ($stmt->execute([$title, $amount, $dueDate, $category, $status, $userId])) {
                 header('Location: index.php?page=bills&success=1');
             } else {
                 header('Location: index.php?page=bills&error=1');
@@ -35,11 +34,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $dueDate = $_POST['due_date'];
             $category = $_POST['category'];
             $status = $_POST['status'];
-            
+
             $stmt = $conn->prepare("UPDATE bills SET title = ?, amount = ?, due_date = ?, category = ?, status = ? WHERE id = ? AND (user_id = ? OR ? = 1)");
-            $stmt->bind_param("sdsssiii", $title, $amount, $dueDate, $category, $status, $billId, $userId, $isAdminUser);
-            
-            if ($stmt->execute()) {
+
+            if ($stmt->execute([$title, $amount, $dueDate, $category, $status, $billId, $userId, $isAdminUser])) {
                 header('Location: index.php?page=bills&success=1');
             } else {
                 header('Location: index.php?page=bills&error=1');
@@ -50,9 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         case 'delete':
             $billId = $_POST['bill_id'];
             $stmt = $conn->prepare("DELETE FROM bills WHERE id = ? AND (user_id = ? OR ? = 1)");
-            $stmt->bind_param("iii", $billId, $userId, $isAdminUser);
-            
-            if ($stmt->execute()) {
+
+            if ($stmt->execute([$billId, $userId, $isAdminUser])) {
                 header('Location: index.php?page=bills&success=1');
             } else {
                 header('Location: index.php?page=bills&error=1');
@@ -69,19 +66,21 @@ $types = "";
 
 if (!$isAdminUser) {
     $params[] = $userId;
-    $types .= "i";
+    // $types removed
 }
 
 if (isset($_GET['category']) && $_GET['category'] !== 'All') {
     $where .= " AND category = ?";
+    $where .= " AND category = ?";
     $params[] = $_GET['category'];
-    $types .= "s";
+    // $types removed
 }
 
 if (isset($_GET['status']) && $_GET['status'] !== 'All') {
     $where .= " AND status = ?";
+    $where .= " AND status = ?";
     $params[] = $_GET['status'];
-    $types .= "s";
+    // $types removed
 }
 
 if (isset($_GET['search']) && $_GET['search']) {
@@ -89,16 +88,14 @@ if (isset($_GET['search']) && $_GET['search']) {
     $where .= " AND (title LIKE ? OR category LIKE ?)";
     $params[] = $search;
     $params[] = $search;
-    $types .= "ss";
+    $params[] = $search;
+    // $types removed as PDO execute handles type inference
 }
 
 $query = "SELECT * FROM bills WHERE $where ORDER BY due_date ASC";
 $stmt = $conn->prepare($query);
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
-}
-$stmt->execute();
-$bills = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->execute($params);
+$bills = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get categories for filter
 $categories = array_unique(array_column($bills, 'category'));
@@ -142,17 +139,15 @@ sort($categories);
                         <span class="input-group-text">
                             <i data-lucide="search"></i>
                         </span>
-                        <input type="text" class="form-control" name="search" 
-                               placeholder="Search bills..."
-                               value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                        <input type="text" class="form-control" name="search" placeholder="Search bills..."
+                            value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <select class="form-select" name="category">
                         <option value="All">All Categories</option>
                         <?php foreach ($categories as $category): ?>
-                            <option value="<?= htmlspecialchars($category) ?>" 
-                                    <?= (($_GET['category'] ?? '') === $category) ? 'selected' : '' ?>>
+                            <option value="<?= htmlspecialchars($category) ?>" <?= (($_GET['category'] ?? '') === $category) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($category) ?>
                             </option>
                         <?php endforeach; ?>
@@ -162,7 +157,8 @@ sort($categories);
                     <select class="form-select" name="status">
                         <option value="All">All Statuses</option>
                         <option value="paid" <?= (($_GET['status'] ?? '') === 'paid') ? 'selected' : '' ?>>Paid</option>
-                        <option value="unpaid" <?= (($_GET['status'] ?? '') === 'unpaid') ? 'selected' : '' ?>>Unpaid</option>
+                        <option value="unpaid" <?= (($_GET['status'] ?? '') === 'unpaid') ? 'selected' : '' ?>>Unpaid
+                        </option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -202,16 +198,16 @@ sort($categories);
                                 <strong>Category:</strong> <?= htmlspecialchars($bill['category']) ?>
                             </p>
                             <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-outline-primary" 
-                                        onclick="toggleBillStatus(<?= $bill['id'] ?>)">
+                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                    onclick="toggleBillStatus(<?= $bill['id'] ?>)">
                                     <i data-lucide="<?= $bill['status'] === 'paid' ? 'x' : 'check' ?>"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" 
-                                        onclick='editBill(<?= json_encode($bill) ?>)'>
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    onclick='editBill(<?= json_encode($bill) ?>)'>
                                     <i data-lucide="edit"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" 
-                                        onclick="deleteBill(<?= $bill['id'] ?>)">
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                    onclick="deleteBill(<?= $bill['id'] ?>)">
                                     <i data-lucide="trash-2"></i>
                                 </button>
                             </div>
@@ -231,12 +227,12 @@ sort($categories);
                 <input type="hidden" name="action" value="add">
                 <input type="hidden" name="bill_id" value="">
                 <input type="hidden" name="page" value="bills">
-                
+
                 <div class="modal-header">
                     <h5 class="modal-title">Add New Bill</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                
+
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Title</label>
@@ -277,7 +273,7 @@ sort($categories);
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Bill</button>
@@ -288,62 +284,62 @@ sort($categories);
 </div>
 
 <script>
-function toggleBillStatus(billId) {
-    fetch('api/toggle_bill_status.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ billId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.reload();
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
+    function toggleBillStatus(billId) {
+        fetch('api/toggle_bill_status.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ billId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
 
-function editBill(bill) {
-    const form = document.getElementById('billForm');
-    form.elements['action'].value = 'edit';
-    form.elements['bill_id'].value = bill.id;
-    form.elements['title'].value = bill.title;
-    form.elements['amount'].value = bill.amount;
-    form.elements['due_date'].value = bill.due_date;
-    form.elements['category'].value = bill.category;
-    
-    Array.from(form.elements['status']).forEach(radio => {
-        radio.checked = (radio.value === bill.status);
-    });
-    
-    document.querySelector('#addBillModal .modal-title').textContent = 'Edit Bill';
-    new bootstrap.Modal(document.getElementById('addBillModal')).show();
-}
+    function editBill(bill) {
+        const form = document.getElementById('billForm');
+        form.elements['action'].value = 'edit';
+        form.elements['bill_id'].value = bill.id;
+        form.elements['title'].value = bill.title;
+        form.elements['amount'].value = bill.amount;
+        form.elements['due_date'].value = bill.due_date;
+        form.elements['category'].value = bill.category;
 
-function deleteBill(billId) {
-    if (confirm('Are you sure you want to delete this bill?')) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.innerHTML = `
+        Array.from(form.elements['status']).forEach(radio => {
+            radio.checked = (radio.value === bill.status);
+        });
+
+        document.querySelector('#addBillModal .modal-title').textContent = 'Edit Bill';
+        new bootstrap.Modal(document.getElementById('addBillModal')).show();
+    }
+
+    function deleteBill(billId) {
+        if (confirm('Are you sure you want to delete this bill?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.innerHTML = `
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="bill_id" value="${billId}">
             <input type="hidden" name="page" value="bills">
         `;
-        document.body.appendChild(form);
-        form.submit();
+            document.body.appendChild(form);
+            form.submit();
+        }
     }
-}
 
-// Reset form when adding new bill
-document.querySelector('[data-bs-target="#addBillModal"]').addEventListener('click', function() {
-    const form = document.getElementById('billForm');
-    form.reset();
-    form.elements['action'].value = 'add';
-    form.elements['bill_id'].value = '';
-    document.querySelector('#addBillModal .modal-title').textContent = 'Add New Bill';
-});
+    // Reset form when adding new bill
+    document.querySelector('[data-bs-target="#addBillModal"]').addEventListener('click', function () {
+        const form = document.getElementById('billForm');
+        form.reset();
+        form.elements['action'].value = 'add';
+        form.elements['bill_id'].value = '';
+        document.querySelector('#addBillModal .modal-title').textContent = 'Add New Bill';
+    });
 </script>
 
 <?php include 'includes/footer.php'; ?>

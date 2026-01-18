@@ -11,10 +11,11 @@ $isAdminUser = isAdmin();
 $query = "SELECT * FROM bills WHERE " . ($isAdminUser ? "1" : "user_id = ?") . " ORDER BY due_date ASC";
 $stmt = $conn->prepare($query);
 if (!$isAdminUser) {
-    $stmt->bind_param("i", $userId);
+    $stmt->execute([$userId]);
+} else {
+    $stmt->execute();
 }
-$stmt->execute();
-$bills = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$bills = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Calculate statistics
 $totalBills = count($bills);
@@ -30,7 +31,9 @@ $overdueBills = array_filter($unpaidBills, fn($bill) => $bill['due_date'] < $tod
 
 // Get upcoming bills (next 7 days)
 $nextWeek = date('Y-m-d', strtotime('+7 days'));
-$upcomingBills = array_filter($unpaidBills, fn($bill) => 
+$upcomingBills = array_filter(
+    $unpaidBills,
+    fn($bill) =>
     $bill['due_date'] >= $today && $bill['due_date'] <= $nextWeek
 );
 
@@ -169,8 +172,8 @@ arsort($categories);
                                     <span>$<?php echo number_format($amount, 2); ?></span>
                                 </div>
                                 <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar" role="progressbar" 
-                                         style="width: <?php echo ($amount / $totalAmount) * 100; ?>%"></div>
+                                    <div class="progress-bar" role="progressbar"
+                                        style="width: <?php echo ($amount / $totalAmount) * 100; ?>%"></div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
